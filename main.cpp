@@ -79,6 +79,13 @@ int main()
 
         // collisions with paddle
         // TODO implement this.
+        if(ball.getPosition().x - BALL_RADIUS * 2 > paddle.getPosition().x &&
+           ball.getPosition().x < paddle.getPosition().x + PADDLE_WIDTH &&
+           ball.getPosition().y + BALL_RADIUS * 2 > paddle.getPosition().y &&
+           ball.getPosition().y < paddle.getPosition().y + PADDLE_HEIGHT)
+        {
+            ball_velocity.y = -ball_velocity.y;
+        }
 
         dt = clock.restart();
         t += dt;
