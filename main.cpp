@@ -3,6 +3,7 @@
 #include <SFML/Window.hpp>
 #include <cstdlib>
 #include <iostream>
+#include <math.h>
 
 #define GAME_TOP 0
 #define GAME_LEFT 0
@@ -16,6 +17,8 @@
 #define PADDLE_VPOS GAME_HEIGHT - PADDLE_HEIGHT - 20
 
 #define BALL_RADIUS 7
+
+#define BALL_SPEED 600
 
 #define MS_PER_FRAME 16    //16 milliseconds per frame = 60fps
 
@@ -34,6 +37,10 @@ int main()
 
     paddle.setPosition((GAME_WIDTH / 2 - PADDLE_WIDTH / 2), PADDLE_VPOS);
     paddle.setFillColor(sf::Color::Green);
+
+    srand(time(0));
+    double randNum;
+    double angle;
 
     sf::Vector2<int> moveVector;
     sf::Time dt = sf::Time::Zero;
@@ -58,7 +65,9 @@ int main()
 
             if(event.type == sf::Event::MouseButtonPressed && ball_on_paddle)
             {
-                ball_velocity = sf::Vector2<float>(400,-400);
+                randNum = (double)rand() / RAND_MAX;
+                angle = randNum * M_PI_2 + M_PI_4;
+                ball_velocity = sf::Vector2<float>(BALL_SPEED * cos(angle),-BALL_SPEED * sin(angle));
                 ball_on_paddle = 0;
             }
         }
@@ -78,7 +87,7 @@ int main()
         }
 
         // collisions with paddle
-        // TODO implement this.
+        // TODO make this suck less.
         if(ball.getPosition().x - BALL_RADIUS * 2 > paddle.getPosition().x &&
            ball.getPosition().x < paddle.getPosition().x + PADDLE_WIDTH &&
            ball.getPosition().y + BALL_RADIUS * 2 > paddle.getPosition().y &&
