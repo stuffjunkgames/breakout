@@ -19,6 +19,8 @@
 #define BALL_RADIUS 7
 
 #define BALL_SPEED 600
+#define MAX_BLOCKS 50
+#define BLOCK_SIZE 20
 
 #define MS_PER_FRAME 16    //16 milliseconds per frame = 60fps
 
@@ -30,6 +32,8 @@ int main()
     sf::RectangleShape background = sf::RectangleShape(sf::Vector2<float>(GAME_WIDTH, GAME_HEIGHT));
     sf::RectangleShape paddle = sf::RectangleShape(sf::Vector2<float>(PADDLE_WIDTH, PADDLE_HEIGHT));
     sf::CircleShape ball = sf::CircleShape(BALL_RADIUS);
+    sf::RectangleShape blocks[MAX_BLOCKS];
+    bool blockVisible[MAX_BLOCKS];
     sf::Vector2<float> ball_velocity = sf::Vector2f();
 
     background.setPosition(GAME_LEFT, GAME_TOP);
@@ -37,6 +41,13 @@ int main()
 
     paddle.setPosition((GAME_WIDTH / 2 - PADDLE_WIDTH / 2), PADDLE_VPOS);
     paddle.setFillColor(sf::Color::Green);
+
+    for(int i = 0; i < MAX_BLOCKS; i++)
+    {
+        blocks[i].setFillColor(sf::Color::Yellow);
+        blocks[i].setSize(sf::Vector2f(BLOCK_SIZE, BLOCK_SIZE));
+        blockVisible[i] = 1;
+    }
 
     srand(time(0));
     double randNum;
@@ -129,4 +140,14 @@ int main()
 void Reset_Ball(sf::CircleShape *ball, sf::RectangleShape paddle)
 {
     ball->setPosition(paddle.getPosition().x + PADDLE_WIDTH / 2 - BALL_RADIUS, paddle.getPosition().y - BALL_RADIUS * 2);
+}
+
+void Generate_Level(sf::RectangleShape *blocks)
+{
+    // Put blocks in places to create a level
+    // Later:  Procedurally generate locations
+    // More fun:  Give blocks different toughness so it takes more than one hit to break
+    // For now, just put them in a rectangle...
+
+
 }
