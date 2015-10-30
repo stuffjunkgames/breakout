@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <math.h>
+#include <sstream>
 
 #define GAME_TOP 0
 #define GAME_LEFT 0
@@ -16,7 +17,7 @@
 #define PADDLE_HEIGHT 20
 #define PADDLE_VPOS GAME_HEIGHT - PADDLE_HEIGHT - 20
 
-#define BALL_RADIUS 7
+#define BALL_RADIUS 8
 
 #define BALL_SPEED 600
 #define MAX_BLOCKS 50
@@ -25,6 +26,7 @@
 #define MS_PER_FRAME 16    //16 milliseconds per frame = 60fps
 
 void Reset_Ball(sf::CircleShape *ball, sf::RectangleShape paddle);
+float getDistance(sf::Vector2f point1, sf::Vector2f point2);
 
 int main()
 {
@@ -57,6 +59,19 @@ int main()
     sf::Time dt = sf::Time::Zero;
     sf::Time t = sf::Time::Zero;
     sf::Clock clock;
+
+    std::stringstream ss (std::stringstream::in | std::stringstream::out);
+    sf::String ups = sf::String();
+    sf::Font font;
+
+    if(!font.loadFromFile("arial.ttf"))
+    {
+        return 1;
+    }
+    sf::Text upsText = sf::Text();
+    upsText.setFont(font);
+    //sf::Font font;
+    //if(!font.loadFromFile())
 
     bool ball_on_paddle = 1;
 
@@ -105,10 +120,17 @@ int main()
            ball.getPosition().y < paddle.getPosition().y + PADDLE_HEIGHT)
         {
             ball_velocity.y = -ball_velocity.y;
+            std::cout << getDistance(ball.getPosition(), paddle.getPosition()) << std::endl;
         }
 
         dt = clock.restart();
         t += dt;
+
+        ss.str("");
+        ss.clear();
+        ss << (1/dt.asSeconds());
+        ups = ss.str();
+        upsText.setString(ups);
 
         if(ball_on_paddle)
         {
@@ -126,11 +148,11 @@ int main()
             window.draw(background);
             window.draw(paddle);
             window.draw(ball);
+            window.draw(upsText);
             window.display();
 
             t = t.Zero;
         }
-
 
     }
 
@@ -140,6 +162,11 @@ int main()
 void Reset_Ball(sf::CircleShape *ball, sf::RectangleShape paddle)
 {
     ball->setPosition(paddle.getPosition().x + PADDLE_WIDTH / 2 - BALL_RADIUS, paddle.getPosition().y - BALL_RADIUS * 2);
+}
+
+float getDistance(sf::Vector2f point1, sf::Vector2f point2)
+{
+    return sqrt(pow(point1.x - point2.x, 2) + pow(point1.y - point2.y, 2));
 }
 
 void Generate_Level(sf::RectangleShape *blocks)
