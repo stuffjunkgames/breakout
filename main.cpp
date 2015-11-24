@@ -27,6 +27,8 @@
 
 void Reset_Ball(sf::CircleShape *ball, sf::RectangleShape paddle);
 float getDistance(sf::Vector2f point1, sf::Vector2f point2);
+sf::Vector2f collide(sf::CircleShape ball, sf::RectangleShape block);
+float Vector_Length(sf::Vector2f v);
 
 int main()
 {
@@ -54,6 +56,9 @@ int main()
     srand(time(0));
     double randNum;
     double angle;
+    double collisionAngle;
+
+    sf::Vector2f projection;
 
     sf::Vector2<int> moveVector;
     sf::Time dt = sf::Time::Zero;
@@ -99,13 +104,17 @@ int main()
         }
 
         // handle collisions with wall
-        if(ball.getPosition().x < GAME_LEFT || ball.getPosition().x > GAME_RIGHT - 2 * BALL_RADIUS)
+        if(ball.getPosition().x < GAME_LEFT)
         {
-            ball_velocity.x = -ball_velocity.x;
+            ball_velocity.x = abs(ball_velocity.x);
+        }
+        if(ball.getPosition().x > GAME_RIGHT - 2 * BALL_RADIUS)
+        {
+            ball_velocity.x = -abs(ball_velocity.x);
         }
         if(ball.getPosition().y < GAME_TOP)
         {
-            ball_velocity.y = -ball_velocity.y;
+            ball_velocity.y = abs(ball_velocity.y);
         }
         if(ball.getPosition().y > GAME_BOTTOM - 2 * BALL_RADIUS)
         {
@@ -114,13 +123,15 @@ int main()
 
         // collisions with paddle
         // TODO make this suck less.
-        if(ball.getPosition().x - BALL_RADIUS * 2 > paddle.getPosition().x &&
-           ball.getPosition().x < paddle.getPosition().x + PADDLE_WIDTH &&
-           ball.getPosition().y + BALL_RADIUS * 2 > paddle.getPosition().y &&
-           ball.getPosition().y < paddle.getPosition().y + PADDLE_HEIGHT)
+        sf::Vector2f impulse = collide(ball, paddle);
+        if(impulse.x != 0 || impulse.y != 0)
         {
-            ball_velocity.y = -ball_velocity.y;
-            std::cout << getDistance(ball.getPosition(), paddle.getPosition()) << std::endl;
+            collisionAngle = acos((double)ball_velocity.y/(double)Vector_Length(ball_velocity)) +
+                                acos((double)impulse.y/(double)Vector_Length(impulse)) + M_PI;
+
+            projection = Vector_Length(ball_velocity) * (float)cos(collisionAngle) * impulse;
+            ball_velocity = ball_velocity + 2.0f * projection;
+            std::cout << impulse.x << ", " << impulse.y << std::endl;
         }
 
         dt = clock.restart();
@@ -161,12 +172,83 @@ int main()
 
 void Reset_Ball(sf::CircleShape *ball, sf::RectangleShape paddle)
 {
-    ball->setPosition(paddle.getPosition().x + PADDLE_WIDTH / 2 - BALL_RADIUS, paddle.getPosition().y - BALL_RADIUS * 2);
+    ball->setPosition(paddle.getPosition().x + PADDLE_WIDTH / 2 - BALL_RADIUS, paddle.getPosition().y - BALL_RADIUS * 2 - 1);
 }
 
 float getDistance(sf::Vector2f point1, sf::Vector2f point2)
 {
     return sqrt(pow(point1.x - point2.x, 2) + pow(point1.y - point2.y, 2));
+}
+
+float Vector_Length(sf::Vector2f v)
+{
+    return sqrt(pow(v.x,2) + pow(v.y,2));
+}
+
+sf::Vector2f collide(sf::CircleShape ball, sf::RectangleShape block)
+{
+    sf::Vector2f ball_center = ball.getPosition() + sf::Vector2f(ball.getRadius(), ball.getRadius());
+    sf::Vector2f block_center = block.getPosition() + sf::Vector2f(block.getSize().x/2, block.getSize().y/2);
+
+    sf::Vector2f diff = ball_center - block_center;
+
+    // Not intersecting
+    if(abs(diff.x) > block.getSize().x/2 + ball.getRadius() || abs(diff.y) > block.getSize().y/2 + ball.getRadius())
+    {
+        return sf::Vector2f(0,0);
+    }
+
+    // hit edge of block (top/bottom)
+    if(abs(diff.x) <= PADDLE_WIDTH)
+    {
+        if(diff.y <= 0)
+        {
+            return sf::Vector2f(0,-1);
+        }
+        else if(diff.y > 0)
+        {
+            return sf::Vector2f(0,1);
+        }
+    }
+    // hit edge of block (left/right)
+    else if(abs(diff.y) <= PADDLE_HEIGHT)
+    {
+        if(diff.x <= 0)
+        {
+            return sf::Vector2f(-1,0);
+        }
+        else if(diff.x > 0)
+        {
+            return sf::Vector2f(1,0);
+        }
+    }
+
+    float distance = getDistance(ball_center, block.getPosition());
+    if(distance <= ball.getRadius())
+    {
+        return (ball_center - block.getPosition()) / distance;
+    }
+    sf::Vector2f block_corner = block.getPosition() + sf::Vector2f(block.getSize().x,0);
+    distance = getDistance(ball_center, block_corner);
+    if(distance <= ball.getRadius())
+    {
+        return (ball_center - block_corner) / distance;
+    }
+    block_corner = block.getPosition() + sf::Vector2f(0, block.getSize().y);
+    distance = getDistance(ball_center, block_corner);
+    if(distance <= ball.getRadius())
+    {
+        return (ball_center - block_corner) / distance;
+    }
+    block_corner = block.getPosition() + block.getSize();
+    distance = getDistance(ball_center, block_corner);
+    if(distance <= ball.getRadius())
+    {
+        return (ball_center - block_corner) / distance;
+    }
+
+    // Not intersecting, even in the corners
+    return sf::Vector2f(0,0);
 }
 
 void Generate_Level(sf::RectangleShape *blocks)
