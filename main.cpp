@@ -131,7 +131,7 @@ int main()
 
             projection = Vector_Length(ball_velocity) * (float)cos(collisionAngle) * impulse;
             ball_velocity = ball_velocity + 2.0f * projection;
-            std::cout << impulse.x << ", " << impulse.y << std::endl;
+            //std::cout << impulse.x << ", " << impulse.y << std::endl;
         }
 
         dt = clock.restart();
@@ -197,9 +197,10 @@ sf::Vector2f collide(sf::CircleShape ball, sf::RectangleShape block)
     {
         return sf::Vector2f(0,0);
     }
+    std::cout << diff.x << ", " << diff.y << std::endl;
 
     // hit edge of block (top/bottom)
-    if(abs(diff.x) <= PADDLE_WIDTH)
+    if(abs(diff.x) <= PADDLE_WIDTH/2)
     {
         if(diff.y <= 0)
         {
@@ -211,7 +212,7 @@ sf::Vector2f collide(sf::CircleShape ball, sf::RectangleShape block)
         }
     }
     // hit edge of block (left/right)
-    else if(abs(diff.y) <= PADDLE_HEIGHT)
+    else if(abs(diff.y) <= PADDLE_HEIGHT/2)
     {
         if(diff.x <= 0)
         {
